@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具說明書</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; padding: 10px 25px; }
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 8px; color: #2c3e50; }
+        code { background-color: #eef; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; }
+        strong { color: #0056b3; }
+        ul { padding-left: 20px; }
+
+        /* --- 新增：底部控制項樣式 --- */
+        #reset-controls {
+            display: none; /* 預設隱藏 */
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            text-align: center;
+        }
+        .reset-button {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        #clear-cache-btn {
+            background-color: #ffc107;
+            border-color: #f5b300;
+        }
+        #reset-btn {
+            background-color: #dc3545;
+            border-color: #c82333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>工具說明書</h1>
+
+    <!-- ... 您的說明書內容保持不變 ... -->
+    <h2>功能總覽</h2>
+    <p>本工具可以根據您設定的正規表示式 (Regex)，批量替換多則範本文字的內容，並即時預覽結果。</p>
+    <h2>各欄位說明</h2>
+    <ul>
+        <li><strong>正規表示式 (Regex)</strong><br>輸入您想尋找的文字模式。例如，<code>\bworld\b</code> 可以精準地找到單詞 "world"。右邊的小框是旗標 (Flags)，<code>g</code> 代表全域尋找，<code>i</code> 代表忽略大小寫。</li>
+        <li><strong>替換內容</strong><br>輸入您希望將符合的文字替換成的內容。這裡支援 HTML 語法，例如 <code>&lt;span style="color: red;"&gt;New Text&lt;/span&gt;</code>，替換結果會直接渲染出來。</li>
+        <li><strong>最小深度</strong><br>這是本工具的核心功能。設定一個數字 N，則範本列表中<strong>最新的 N 則內容將不會被 Regex 影響</strong>，保持原樣。所有比這 N 則更舊的內容，都會被 Regex 規則處理。<br><center><strong><p>不被Regex影響的回覆，其背景顏色將會是淡藍色</p></strong></center></li>
+        <li><strong>範本列表</strong><br>- <strong>編輯：</strong>直接用滑鼠點擊任何一則範本即可開始編輯文字。<br>- <strong>新增：</strong>點擊右上角的 <code>+</code> 按鈕來新增一則範本。<br>- <strong>藍色標示：</strong>被藍色標示的範本，就是根據上方設定將被「保留」的最新內容。</li>
+    </ul>
+    <h2>預覽區</h2>
+    <ul>
+        <li><strong>符合項目預覽：</strong>以純文字顯示所有範本，並將被 Regex 符合的部分用黃色背景高亮出來。</li>
+        <li><strong>替換結果預覽：</strong>顯示最終的處理結果。被替換的範本會顯示新內容（並渲染HTML），被保留的範本則顯示原文。</li>
+    </ul>
+    
+    <!-- 新增：底部的控制項 -->
+    <div id="reset-controls">
+        <h2>進階操作</h2>
+        <button id="clear-cache-btn" class="reset-button">刪除暫存</button>
+        <button id="reset-btn" class="reset-button">重設回預設值</button>
+    </div>
+
+    <!-- 新增：控制顯示和通訊的 Script -->
+    <script>
+        const resetControls = document.getElementById('reset-controls');
+        
+        // 偵測捲動事件
+        window.addEventListener('scroll', () => {
+            // 當 (視窗高度 + 已捲動距離) >= 整個頁面高度 時，代表已到底部
+            // 減去 10px 作為緩衝，避免像素計算誤差
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10) {
+                resetControls.style.display = 'block'; // 顯示控制項
+            }
+        });
+
+        // 按鈕點擊事件，向父視窗發送指令
+        document.getElementById('clear-cache-btn').addEventListener('click', () => {
+            if (confirm('確定要清除所有暫存的輸入內容嗎？')) {
+                window.parent.postMessage('clearCache', '*'); // '*' 代表允許任何來源的父視窗接收
+            }
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            if (confirm('確定要清除暫存並將所有內容重設為預設值嗎？此操作無法復原！')) {
+                window.parent.postMessage('resetToDefault', '*');
+            }
+        });
+    </script>
+</body>
+</html>

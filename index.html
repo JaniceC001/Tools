@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex 多範本替換工具</title>
+    <style>
+        /* 所有的 CSS 樣式都保持不變 */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f9; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .header-controls { text-align: center; margin-bottom: 20px; }
+        .help-button { display: inline-block; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #3498db; background-color: white; color: #3498db; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .help-button:hover { background-color: #3498db; color: white; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 700px; height: 80vh; position: relative; display: flex; flex-direction: column; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; color: #aaa; cursor: pointer; }
+        .close-btn:hover { color: #000; }
+        #help-frame { flex-grow: 1; width: 100%; border: none; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; flex-grow: 1; }
+        .panel { background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 20px; display: flex; flex-direction: column; }
+        .inputs-panel { flex: 1; min-width: 300px; }
+        .previews-panel { flex: 2; min-width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; font-family: 'Courier New', Courier, monospace; box-sizing: border-box; }
+        textarea { min-height: 120px; resize: vertical; }
+        .regex-group { display: flex; align-items: center; gap: 10px; }
+        .regex-group .regex-pattern { flex-grow: 1; }
+        .regex-group .regex-flags input { width: 50px; }
+        .preview-box { border: 1px solid #ddd; border-radius: 4px; padding: 15px; background-color: #fdfdfd; overflow: auto; min-height: 200px; flex-grow: 1; white-space: pre-wrap; word-wrap: break-word; font-family: inherit; }
+        h3 { margin-top: 0; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; color: #34495e; }
+        .highlight { background-color: #fff3cd; border-radius: 3px; padding: 1px 3px; font-family: 'Courier New', Courier, monospace; }
+        #error-message { color: #e74c3c; font-weight: bold; height: 20px; }
+        .source-list-header { display: flex; justify-content: space-between; align-items: center; }
+        #add-source-btn { background: #2c3e50; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 18px; line-height: 24px; text-align: center; cursor: pointer; font-weight: bold; }
+        #source-list-container { border: 1px solid #ccc; border-radius: 4px; min-height: 150px; padding: 5px; overflow-y: auto; }
+        .source-item { padding: 8px; border-bottom: 1px solid #eee; cursor: text; font-family: 'Courier New', Courier, monospace; }
+        .source-item:focus { background-color: #f0f8ff; outline: 1px solid #88c8ff; }
+        .source-item.unaffected { background-color: #e7f5ff; border-left: 3px solid #007bff; padding-left: 5px; }
+        .source-item:last-child { border-bottom: none; }
+        #replacement-preview img, #replacement-preview video { max-width: 100%; height: auto; }
+        #replacement-preview table { display: block; width: 100%; overflow-x: auto; white-space: nowrap; }
+        #replacement-preview table th, #replacement-preview table td { padding: 8px 12px; border: 1px solid #ddd; }
+        #replacement-preview pre { white-space: pre-wrap; word-break: break-all; }
+        .source-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: text;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap; /* <-- 新增這一行 */
+        }
+        .label-wrapper {
+            display: flex;
+            align-items: baseline; /* 讓不同大小的文字基線對齊 */
+            gap: 10px; /* 在標籤和提醒之間增加一些間距 */
+        }
+        .warning-message {
+            display: none; /* 關鍵：預設隱藏 */
+            font-size: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* 使用正常字體 */
+            color: #e67e22; /* 橘色，醒目但不刺眼 */
+            font-weight: normal;
+        }
+        @media (max-width: 800px) {
+            .container { flex-direction: column; }
+            body { padding: 10px; }
+            h1 { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Regex 多範本替換工具</h1>
+
+    <div class="header-controls">
+        <button id="help-btn" class="help-button" title="顯示說明">?</button>
+    </div>
+
+    <!-- 說明視窗 Modal -->
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="close-btn" class="close-btn">&times;</span>
+            <iframe id="help-frame" src="./help.html" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 左側：輸入區 (HTML結構不變) -->
+        <div class="panel inputs-panel">
+            <h3>輸入</h3>
+            <div class="form-group">
+                <label for="regex-input">正規表示式 (Regex)</label>
+                <div class="regex-group">
+                    <input type="text" id="regex-input" class="regex-pattern">
+                    <input type="text" id="flags-input" title="Regex Flags (e.g., g, i, m)" class="regex-flags">
+                </div>
+                <div id="error-message"></div>
+            </div>
+            <div class="form-group">
+                <div class="label-wrapper">
+                    <label for="replacement-input">替換內容 (支援部分HTML)</label>
+                    <!-- 新增的提醒訊息元素 -->
+                    <span id="st-warning-message" class="warning-message">SillyTavern可能不支援以下元素</span>
+                </div>
+                <textarea id="replacement-input"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="depth-input">最小深度 (不被 Regex 影響)</label>
+                <input type="number" id="depth-input" min="0">
+            </div>
+            <div class="form-group">
+                <div class="source-list-header">
+                    <label>範本列表 (點擊即可編輯)</label>
+                    <button id="add-source-btn" title="新增範本">+</button>
+                </div>
+                <div id="source-list-container"></div>
+            </div>
+        </div>
+
+        <!-- 右側：預覽區 (HTML結構不變) -->
+        <div class="panel previews-panel">
+            <h3>預覽</h3>
+            <div class="form-group">
+                <label>符合項目預覽</label>
+                <div id="match-preview" class="preview-box"></div>
+            </div>
+            <div class="form-group">
+                <label>替換結果預覽 (HTML渲染)</label>
+                <div id="replacement-preview" class="preview-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <!--
+      **這裡是唯一的關鍵改動**
+      原本這裡有一大段 <script>...</script>
+      現在我們將它移除，並用下面這一行來引用外部檔案
+    -->
+    <script src="background.js"></script>
+
+</body>
+</html>
