@@ -141,23 +141,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderSourceList() {
-        sourceListContainer.innerHTML = '';
+        sourceListContainer.innerHTML = ''; // 清空現有列表
         const depth = parseInt(depthInput.value, 10) || 0;
         const totalSources = sourceTexts.length;
         const unaffectedStartIndex = totalSources - depth;
+
         sourceTexts.forEach((text, index) => {
+            // 1. 創建新的 wrapper 容器
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'source-item-wrapper';
+
+            // 2. 創建可編輯的文字區域
             const itemDiv = document.createElement('div');
             itemDiv.className = 'source-item';
-            if (index >= unaffectedStartIndex) {
-                itemDiv.classList.add('unaffected');
-            }
-            itemDiv.textContent = text;
             itemDiv.contentEditable = true;
+            itemDiv.innerText = text; // 使用 innerText 以保留換行
+
+            // 3. 創建刪除按鈕
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = '×'; // 使用乘號作為 "X"
+            deleteBtn.title = '刪除此範本';
+
+            // 4. 為 wrapper 添加 'unaffected' 樣式（如果需要）
+            if (index >= unaffectedStartIndex) {
+                wrapperDiv.classList.add('unaffected');
+            }
+
+            // --- 事件綁定 ---
+            // 編輯事件
             itemDiv.addEventListener('input', () => {
-                sourceTexts[index] = itemDiv.innerText; // <-- 修改這一行
+                sourceTexts[index] = itemDiv.innerText;
                 handleInputChange();
             });
-            sourceListContainer.appendChild(itemDiv);
+
+            // 刪除事件
+            deleteBtn.addEventListener('click', () => {
+                // 為了安全，給出一個確認提示
+                const confirmationText = sourceTexts[index].length > 20 
+                    ? `"${sourceTexts[index].substring(0, 20)}..."` 
+                    : `"${sourceTexts[index]}"`;
+                
+                if (confirm(`確定要刪除範本 ${confirmationText} 嗎？`)) {
+                    sourceTexts.splice(index, 1); // 從陣列中移除該項
+                    renderSourceList(); // 重新渲染整個列表
+                    updatePreviews();   // 更新預覽
+                    saveState();        // 保存變更
+                }
+            });
+
+            // 5. 將元素組裝起來
+            wrapperDiv.appendChild(itemDiv);
+            wrapperDiv.appendChild(deleteBtn);
+            sourceListContainer.appendChild(wrapperDiv);
         });
     }
 
