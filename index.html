@@ -33,9 +33,54 @@
         #error-message { color: #e74c3c; font-weight: bold; height: 20px; }
         .source-list-header { display: flex; justify-content: space-between; align-items: center; }
         #add-source-btn { background: #2c3e50; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 18px; line-height: 24px; text-align: center; cursor: pointer; font-weight: bold; }
-        #source-list-container { border: 1px solid #ccc; border-radius: 4px; min-height: 150px; padding: 5px; overflow-y: auto; }
-        .source-item { padding: 8px; border-bottom: 1px solid #eee; cursor: text; font-family: 'Courier New', Courier, monospace; }
-        .source-item:focus { background-color: #f0f8ff; outline: 1px solid #88c8ff; }
+        #source-list-container { border: 1px solid #ccc; border-radius: 4px; min-height: 150px; overflow-y: auto; } /* 移除了 padding */
+        .source-item-wrapper {
+            display: flex;
+            align-items: center; /* 垂直置中 */
+            gap: 8px;
+            padding: 0 8px; /* 將 padding 移到這裡 */
+            border-bottom: 1px solid #eee;
+        }
+        .source-item-wrapper:last-child {
+            border-bottom: none;
+        }
+        .source-item {
+            flex-grow: 1; /* 佔滿剩餘空間 */
+            padding: 8px 0; /* 調整垂直 padding */
+            cursor: text;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+        .source-item:focus {
+            background-color: #f0f8ff;
+            outline: none; /* 移除預設 outline，因為 wrapper 會提供視覺提示 */
+        }
+        /* 更新：不受影響項目的樣式 */
+        .source-item-wrapper.unaffected {
+            background-color: #e7f5ff;
+            border-left: 3px solid #007bff;
+        }
+
+        /* 新增：刪除按鈕的樣式 */
+        .delete-btn {
+            flex-shrink: 0; /* 防止按鈕被壓縮 */
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background-color: #f1f1f1;
+            color: #888;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 22px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            background-color: #e74c3c; /* 紅色 */
+            color: white;
+        }
         .source-item.unaffected { background-color: #e7f5ff; border-left: 3px solid #007bff; padding-left: 5px; }
         .source-item:last-child { border-bottom: none; }
         #replacement-preview img, #replacement-preview video { max-width: 100%; height: auto; }
@@ -139,5 +184,4 @@
     <script src="background.js"></script>
 
 </body>
-
 </html>
