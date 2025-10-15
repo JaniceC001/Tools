@@ -47,7 +47,15 @@
     <h2>各欄位說明</h2>
     <ul>
         <li><strong>正規表示式 (Regex)</strong><br>輸入您想尋找的文字模式。例如，<code>\bworld\b</code> 可以精準地找到單詞 "world"。右邊的小框是旗標 (Flags)，<code>g</code> 代表全域尋找，<code>i</code> 代表忽略大小寫。</li>
-        <li><strong>替換內容</strong><br>輸入您希望將符合的文字替換成的內容。這裡支援 HTML 語法，例如 <code>&lt;span style="color: red;"&gt;New Text&lt;/span&gt;</code>，替換結果會直接渲染出來。</li>
+        <li>
+            <strong>替換內容</strong><br>
+            輸入您希望將符合的文字替換成的內容。這裡支援 HTML 語法，也支援使用特殊變數來重新組合被 Regex 抓到的文字：
+            <ul>
+                <li><code>{{match}}</code> 或 <code>$&amp;</code>：代表整個被 Regex 符合的完整文字。</li>
+                <li><code>$1</code>, <code>$2</code>, <code>$3</code>...：代表 Regex 中第 1、2、3... 個括號 <code>()</code> 所捕獲的內容。</li>
+            </ul>
+            例如：若 Regex 是 <code>(Hello) (World)</code>，替換內容寫成 <code>$2, $1!</code>，結果就會變成 "World, Hello!"。
+        </li>
         <li><strong>最小深度</strong><br>這是本工具的核心功能。設定一個數字 N，則範本列表中<strong>最新的 N 則內容將不會被 Regex 影響</strong>，保持原樣。所有比這 N 則更舊的內容，都會被 Regex 規則處理。<br><center><strong><p>不被Regex影響的回覆，其背景顏色將會是淡藍色</p></strong></center></li>
         <li><strong>範本列表</strong><br>- <strong>編輯：</strong>直接用滑鼠點擊任何一則範本即可開始編輯文字。<br>- <strong>新增：</strong>點擊右上角的 <code>+</code> 按鈕來新增一則範本。<br>- <strong>藍色標示：</strong>被藍色標示的範本，就是根據上方設定將被「保留」的最新內容。</li>
     </ul>

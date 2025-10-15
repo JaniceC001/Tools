@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const regexPattern = regexInput.value;
         const regexFlags = flagsInput.value;
         const replacementString = replacementInput.value;
+        const finalReplacementString = replacementString.replace(/\{\{match\}\}/gi, '$$&');
         const depth = parseInt(depthInput.value, 10) || 0;
         let regex;
         try {
@@ -106,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const escapedSource = escapeHTML(source);
                 const highlighted = regex.source === '(?:)' ? escapedSource : escapedSource.replace(regex, match => `<span class="highlight">${escapeHTML(match)}</span>`);
                 matchPreviewParts.push(highlighted);
-                const replaced = source.replace(regex, replacementString);
+                const replaced = source.replace(regex, finalReplacementString);
                 replacementPreviewParts.push(replaced);
             } else {
                 matchPreviewParts.push(escapeHTML(source));
